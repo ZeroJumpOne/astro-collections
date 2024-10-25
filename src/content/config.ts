@@ -22,8 +22,6 @@ const blogCollection = defineCollection({
     }),
 });
 
-type blogCollection = z.infer<typeof blogCollection>;
-
 const authorCollection = defineCollection({
     type: "data",
     schema: ( {image} ) => z.object({
