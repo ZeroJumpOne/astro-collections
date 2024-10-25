@@ -1,4 +1,4 @@
-# Astro Starter Kit: Minimal
+# Astro Collections
 
 by M.Ing. Isaac Hdez Castro
 
