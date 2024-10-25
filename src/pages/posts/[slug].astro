@@ -1,0 +1,77 @@
+---
+import { Formatter } from "@utils/formatter";
+import type { GetStaticPaths } from "astro";
+import { Image } from "astro:assets";
+import { getEntry } from "astro:content";
+import { getCollection } from "astro:content";
+import BlogLayout from "src/layouts/BlogLayout.astro";
+
+export const getStaticPaths = ( async () => {
+
+    const blogPost = await getCollection('blog');
+    // console.log({blogPost});
+    
+    return blogPost.map( (item) => ({
+        params: { slug: item.slug },
+        props: { post: item }
+    }))
+}) satisfies GetStaticPaths;
+
+const { post } = Astro.props;
+// console.log(post);
+const frontmatter = post.data;
+const { Content, headings } = await post.render();
+const author = (await getEntry('author', post.data.author.id)).data;
+---
+
+<BlogLayout title={frontmatter.title}>
+    <h1 class="text-xs text-gray-500 mb-0">{ frontmatter.title }</h1>
+    <!-- <h4 class="text-md text-gray-400 mb-0">{ frontmatter.author }</h4> -->
+     <div class="text-md text-gray-400 mb-0 flex flex-row mt-2">
+        <Image
+            class="rounded-full"
+            src={ author.avatar }
+            format="webp"
+            width={50}
+            height={50}
+            alt={ author.name }
+        />
+
+        <div class="flex flex-col ml-5">
+            <a href={`/blog/${frontmatter.author.id}`}>{ author.name }</a>
+            <span class="text-xs text-gray-200">{ Formatter.formatDate(post.data.date)}</span>
+        </div>
+
+     </div>
+
+    <Image
+        class="object-cover w-full h-[256px] my-5 rounded-md"
+        transition:name={`${post.slug}-image`}
+        src={frontmatter.image}
+        alt={frontmatter.title}
+        format="webp"
+        width={600}
+        height={220}
+        quality="low"
+    />
+    
+    <h3>Indice del Contenido</h3>
+    <ol>
+        {
+            headings.map( (heading, index) => (
+                <li>
+                    <a href={`#${heading.slug}`}> { index + 1 } - { heading.text }</a>                    
+                </li>
+            ))
+        }
+    </ol>
+
+
+    <!-- Contenido -->
+     <Content></Content>
+
+     <div class="my-20">
+        <a href="#bu-back">Ir arriba</a>
+     </div>
+
+</BlogLayout>
