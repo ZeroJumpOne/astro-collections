@@ -1,7 +1,10 @@
 import rss from '@astrojs/rss';
 import type { APIRoute } from 'astro';
 import { getCollection } from 'astro:content';
+import MarkdownIt from 'markdown-it';
+import sanitizeHtml from 'sanitize-html';
 
+const parser = MarkdownIt();
 
 export const GET: APIRoute = async ({ site }) => {
     const blogPosts = await getCollection('blog');
@@ -11,13 +14,26 @@ export const GET: APIRoute = async ({ site }) => {
         // stylesheet: '/styles/rss.xsl',
         title: 'Mono Blog',
         description: 'Un simplre blog de monito',
+        xmlns: {
+            media: 'http://search.yahoo.com/mrss/',
+        },
         site: site ?? '',
-        items: blogPosts.map( ({ data, slug }) => ({
+        items: blogPosts.map(({ data, slug, body }) => ({
             title: data.title,
             pubDate: data.date,
             descripcion: data.description,
-            link: `/posts/${slug}`
+            link: `/posts/${slug}`,
+            content: sanitizeHtml(parser.render(body), {
+                allowedTags: sanitizeHtml.defaults.allowedTags.concat(['img']),
+            }),
+            customData: `<media:content
+                  type="image/${data.image.format === 'jpg' ? 'jpeg' : 'png'}"
+                  width="${data.image.width}"
+                  height="${data.image.height}"
+                  medium="image"
+                  url="${site + data.image.src}" />
+              `,
         })),
         customData: `<language>es-mx</language>`,
-    });    
+    });
 }
